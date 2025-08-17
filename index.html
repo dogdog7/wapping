@@ -5,30 +5,51 @@
   <title>Wapping</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { background:#1e1e2f; color:#f0f0f0; font-family:Arial,Helvetica,sans-serif; text-align:center; padding:24px; }
-    h1 { color:#ffcc00; margin:0 0 14px; font-size:40px; }
+    :root{
+      --bg:#1e1e2f; --text:#f0f0f0; --accent:#ffcc00;
+      --card:#2c2c3e; --ack:#234231; --ack-border:#2ecc71;
+      --blue:#3498db; --orange:#e67e22; --green:#28a745; --red:#dc3545; --teal:#17a2b8; --purple:#9b59b6;
+      --discord:#5865F2;
+    }
+    body { background:var(--bg); color:var(--text); font-family:Arial,Helvetica,sans-serif; text-align:center; padding:24px; margin:0; }
+    h1 { color:var(--accent); margin:0 0 14px; font-size:40px; }
     .timer{
-      background:#2c2c3e; margin:12px auto; padding:12px 16px; border-radius:10px;
+      background:var(--card); margin:12px auto; padding:12px 16px; border-radius:10px;
       width:1100px; max-width:95vw; display:flex; align-items:center; justify-content:space-between;
       gap:14px; font-size:16px; white-space:nowrap; box-shadow:0 4px 10px rgba(0,0,0,.35);
       outline:1px solid rgba(255,255,255,.08);
+      transition:background .2s, outline-color .2s;
     }
-    .timer.ack { 
-      background:#234231; 
-      outline:1px solid #2ecc71; 
-    }
+    .timer.ack { background:var(--ack); outline-color:var(--ack-border); }
     .left{ overflow:hidden; text-overflow:ellipsis; }
     .time{ font-weight:700; font-variant-numeric:tabular-nums; margin-left:8px; }
     .right{ display:inline-flex; align-items:center; gap:10px; }
     .speaker{ cursor:pointer; font-size:18px; }
-    .controls{ margin:18px 0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-    button{ border:none; border-radius:8px; padding:9px 16px; font-weight:600; cursor:pointer; color:#fff; background:#3498db; }
-    #toggleBtn{ background:#3498db; } 
-    #resetBtn{ background:#dc3545; } 
-    #muteBtn{ background:#17a2b8; }
-    button:hover{ opacity:.9; }
-    footer{ margin-top:26px; padding-top:10px; border-top:1px solid #444; opacity:.9; font-size:14px; }
-    .dogdog{ color:#ffcc00; font-weight:700; }
+    .controls{ margin:18px 0; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    button{
+      border:none; border-radius:12px; padding:10px 18px; font-weight:700; cursor:pointer; color:#fff;
+      display:inline-flex; align-items:center; gap:8px; transition:background .2s, transform .05s;
+    }
+    button:hover{ opacity:.92; } button:active{ transform:translateY(1px); }
+    #toggleBtn{ background:var(--blue); }         /* Start (blue) → Pause (orange) → Resume (green) */
+    #resetBtn{  background:var(--purple); }       /* Reset is purple                              */
+    #muteBtn{   background:var(--red); }          /* Mute is red; Unmute flips to teal            */
+
+    footer{ margin-top:26px; padding-top:14px; border-top:1px solid #444; opacity:.95; font-size:14px; }
+    .dogdog{ color:var(--accent); font-weight:700; }
+
+    /* Discord footer bits */
+    .discord-block{
+      margin-top:10px; display:flex; justify-content:center; align-items:center; gap:8px; font-size:14px; color:#fff;
+      flex-wrap:wrap;
+    }
+    .discord-tag{
+      background:var(--card); padding:4px 8px; border-radius:6px; font-weight:700; color:#7289da;
+    }
+    .discord-copy{
+      background:var(--discord); color:#fff; border:none; border-radius:6px; padding:6px 10px; font-weight:700; cursor:pointer;
+    }
+    .copied-msg{ margin-left:6px; opacity:0; transition:opacity .2s; }
   </style>
 </head>
 <body>
@@ -37,14 +58,24 @@
   <div id="rows"></div>
 
   <div class="controls">
-    <button id="toggleBtn">Start</button>
-    <button id="resetBtn">Reset</button>
-    <button id="muteBtn">Mute</button>
+    <button id="toggleBtn">▶️ Start</button>
+    <button id="resetBtn">🔁 Reset</button>
+    <button id="muteBtn">🔇 Mute</button>
   </div>
 
   <footer>
-    <strong>Want your own custom reminders?</strong><br>
-    Reach out to <span class="dogdog">Dogdog</span> for personalized versions 🐶
+    <p style="margin:0 0 8px 0;">
+      <strong>Want your own custom reminders?</strong><br>
+      Reach out to <span class="dogdog">Dogdog</span> for personalized versions 🐶
+    </p>
+
+    <!-- Discord copy block -->
+    <div class="discord-block">
+      🎮 Discord:
+      <code class="discord-tag" id="discordTag">dogtooth.7</code>
+      <button class="discord-copy" id="copyDiscord">📋 Copy</button>
+      <span id="copiedMsg" class="copied-msg">Copied!</span>
+    </div>
   </footer>
 
   <script>
@@ -76,7 +107,7 @@
       rowsDiv.appendChild(row);
     });
 
-    // Test buttons
+    // Speaker test buttons
     document.querySelectorAll(".speaker").forEach(btn => {
       btn.addEventListener("click", () => {
         const idx = Number(btn.getAttribute("data-idx"));
@@ -84,29 +115,42 @@
       });
     });
 
-    // Voice selection
+    // Prefer nicer voices where available, but still universal
     function pickVoice() {
+      const want = [
+        "Microsoft Aria Online (Natural)","Microsoft Jenny Online (Natural)","Microsoft Sonia Online (Natural)","Microsoft Natasha Online (Natural)",
+        "Google UK English Female","Google US English","Google UK English Male","Samantha","Karen","Tessa"
+      ];
       const voices = speechSynthesis.getVoices();
-      femaleVoice =
-        voices.find(v => v.name.toLowerCase().includes("female")) ||
-        voices.find(v => /female/i.test(v.voiceURI)) ||
-        voices.find(v => v.name.includes("Google UK English Female")) ||
-        voices[0] || null;
+      const scored = voices.map(v => {
+        let score = 0;
+        const n = (v.name + " " + (v.voiceURI || "")).toLowerCase();
+        if (/english|en-/.test(v.lang || "")) score += 2;
+        if (/female/.test(n)) score += 2;
+        if (/natural|neural|google/.test(n)) score += 3;
+        if (/(en-au|en-gb)/.test((v.lang || "").toLowerCase())) score += 2;
+        if (want.some(w => v.name.indexOf(w) !== -1)) score += 5;
+        return { v, score };
+      }).sort((a,b) => b.score - a.score);
+      femaleVoice = scored.length ? scored[0].v : (voices[0] || null);
     }
     speechSynthesis.onvoiceschanged = pickVoice; pickVoice();
 
+    // Speak with green-highlight while talking; revert after
     function speak(msg, idx) {
       if (muted) return;
       const u = new SpeechSynthesisUtterance(msg);
       if (femaleVoice) u.voice = femaleVoice;
+      u.lang  = (femaleVoice && femaleVoice.lang) ? femaleVoice.lang : "en-AU";
+      u.rate  = 0.95;    // slightly slower
+      u.pitch = 1.12;    // slightly higher
+      u.volume = 1;
 
       const row = document.getElementById(`row${idx}`);
       if (row) row.classList.add("ack");
+      u.onend = () => { if (row) row.classList.remove("ack"); };
 
-      u.onend = () => {
-        if (row) row.classList.remove("ack");
-      };
-
+      speechSynthesis.cancel(); // prevent overlapping queues
       speechSynthesis.speak(u);
     }
 
@@ -153,39 +197,71 @@
     const resetBtn  = document.getElementById("resetBtn");
     const muteBtn   = document.getElementById("muteBtn");
 
+    // Start ▶️ (blue) → Pause ⏸️ (orange) → Resume ▶️ (green)
     toggleBtn.onclick = () => {
       if (!isRunning) {
-        isRunning = true;
-        isPaused  = false;
-        paint(false);
-        startTicking();
-        toggleBtn.textContent = "Pause";
+        isRunning = true; isPaused = false;
+        paint(false); startTicking();
+        toggleBtn.textContent = "⏸️ Pause";
+        toggleBtn.style.background = "var(--orange)";
       } else if (!isPaused) {
-        isPaused = true;
-        stopTicking();
-        toggleBtn.textContent = "Resume";
+        isPaused = true; stopTicking();
+        toggleBtn.textContent = "▶️ Resume";
+        toggleBtn.style.background = "var(--green)";
       } else {
-        isPaused = false;
-        startTicking();
-        toggleBtn.textContent = "Pause";
+        isPaused = false; startTicking();
+        toggleBtn.textContent = "⏸️ Pause";
+        toggleBtn.style.background = "var(--orange)";
       }
     };
 
+    // Reset = purple
     resetBtn.onclick = () => {
       stopTicking();
       counters  = items.map(i => i.secs);
-      isRunning = false;
-      isPaused  = false;
-      toggleBtn.textContent = "Start";
-      paint(true); 
+      isRunning = false; isPaused = false;
+      toggleBtn.textContent = "▶️ Start";
+      toggleBtn.style.background = "var(--blue)";
+      paint(true);
     };
 
+    // Mute red (sound ON = shows Mute); Unmute teal (muted state)
     muteBtn.onclick = () => {
       muted = !muted;
-      muteBtn.textContent = muted ? "Unmute" : "Mute";
+      if (muted) {
+        muteBtn.textContent = "🔊 Unmute";
+        muteBtn.style.background = "var(--teal)";
+      } else {
+        muteBtn.textContent = "🔇 Mute";
+        muteBtn.style.background = "var(--red)";
+      }
     };
 
+    // Initial render
     paint(true);
+
+    // Copy "dogtooth.7" to clipboard
+    (function setupCopy(){
+      const btn = document.getElementById('copyDiscord');
+      if (!btn) return;
+      btn.addEventListener('click', async () => {
+        const text = 'dogtooth.7';
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+          }
+          const msg = document.getElementById('copiedMsg');
+          if (msg) { msg.style.opacity = '1'; setTimeout(() => msg.style.opacity = '0', 1200); }
+        } catch {}
+      });
+    })();
   </script>
 </body>
 </html>
