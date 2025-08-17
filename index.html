@@ -32,24 +32,28 @@
     }
     button:hover{ opacity:.92; } button:active{ transform:translateY(1px); }
     #toggleBtn{ background:var(--blue); }         /* Start (blue) → Pause (orange) → Resume (green) */
-    #resetBtn{  background:var(--purple); }       /* Reset is purple                              */
-    #muteBtn{   background:var(--red); }          /* Mute is red; Unmute flips to teal            */
+    #resetBtn{  background:var(--purple); }       /* Reset is purple */
+    #muteBtn{   background:var(--red); }          /* Mute red; Unmute teal */
 
     footer{ margin-top:26px; padding-top:14px; border-top:1px solid #444; opacity:.95; font-size:14px; }
     .dogdog{ color:var(--accent); font-weight:700; }
 
-    /* Discord footer bits */
+    /* Discord footer */
     .discord-block{
-      margin-top:10px; display:flex; justify-content:center; align-items:center; gap:8px; font-size:14px; color:#fff;
-      flex-wrap:wrap;
+      margin-top:12px; display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; color:#fff;
     }
-    .discord-tag{
-      background:var(--card); padding:4px 8px; border-radius:6px; font-weight:700; color:#7289da;
+    .discord-chip{
+      background:var(--card); padding:4px 10px; border-radius:8px; font-weight:700; color:#7289da;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
-    .discord-copy{
-      background:var(--discord); color:#fff; border:none; border-radius:6px; padding:6px 10px; font-weight:700; cursor:pointer;
+    .icon-btn{
+      background:transparent; border:none; cursor:pointer; padding:6px; border-radius:8px; line-height:0;
+      color:#b9bbbe; transition:color .2s, background .2s, transform .05s;
     }
-    .copied-msg{ margin-left:6px; opacity:0; transition:opacity .2s; }
+    .icon-btn:hover{ color:#fff; background:rgba(255,255,255,.06); }
+    .icon-btn:active{ transform:translateY(1px); }
+    .copied-msg{ font-size:12px; color:#2ecc71; font-weight:700; opacity:0; transition:opacity .2s; }
+    .svg{ width:20px; height:20px; display:inline-block; vertical-align:middle; }
   </style>
 </head>
 <body>
@@ -69,11 +73,24 @@
       Reach out to <span class="dogdog">Dogdog</span> for personalized versions 🐶
     </p>
 
-    <!-- Discord copy block -->
+    <!-- Discord footer: logo + tag chip + icon-only copy (stacked-sheets icon) -->
     <div class="discord-block">
-      🎮 Discord:
-      <code class="discord-tag" id="discordTag">dogtooth.7</code>
-      <button class="discord-copy" id="copyDiscord">📋 Copy</button>
+      <!-- Discord logo (SVG) -->
+      <svg class="svg" viewBox="0 0 245 240" aria-hidden="true">
+        <path fill="#5865F2" d="M104.4 104.3c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.6-11.1-10.2-11.1zm36.2 0c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.6-11.1-10.2-11.1z"/><path fill="#5865F2" d="M189.5 20h-134A35.5 35.5 0 0 0 20 55.5v129A35.5 35.5 0 0 0 55.5 220h93.7l-4.4-15.4 10.6 9.9 10 9.3 17.8 16.1V220h6.3A35.5 35.5 0 0 0 225 184.5v-129A35.5 35.5 0 0 0 189.5 20zm-26.1 135s-2.4-2.9-4.4-5.4c8.6-2.4 11.8-7.6 11.8-7.6-2.7 1.7-5.3 3-7.6 3.9-3.3 1.4-6.6 2.3-9.8 2.9-6.5 1.2-12.4.9-17.5-.1-3.8-.7-7-1.6-9.7-2.9-1.5-.7-3.1-1.5-4.7-2.6-.2-.1-.3-.2-.5-.3-.1-.1-.2-.1-.3-.2-1.4-.8-2.2-1.3-2.2-1.3s3.1 5.1 11.3 7.5c-1.9 2.5-4.4 5.5-4.4 5.5-14.6-.5-20.1-10-20.1-10 0-21.2 9.5-38.4 9.5-38.4 9.5-7.1 18.5-6.9 18.5-6.9l.7.8c-11.9 3.4-17.3 8.6-17.3 8.6s1.5-.8 4-1.9c7.3-3.2 13-4.1 15.3-4.3.4-.1.8-.1 1.2-.1 4.3-.5 9.3-.6 14.5-.1 6.8.8 14 2.9 21.4 7.2 0 0-5.2-5-16.4-8.4l1-1.1s9-.2 18.5 6.9c0 0 9.5 17.2 9.5 38.4 0 0-5.5 9.4-20.2 10z"/>
+      </svg>
+
+      <span>Discord:</span>
+      <code class="discord-chip" id="discordTag">dogtooth.7</code>
+
+      <!-- icon-only copy button (STACKED SHEETS ICON) -->
+      <button class="icon-btn" id="copyDiscord" title="Copy to clipboard" aria-label="Copy to clipboard">
+        <svg class="svg" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M16 1H6a2 2 0 0 0-2 2v10h2V3h10V1z"/>
+          <path fill="currentColor" d="M18 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h8v14z"/>
+        </svg>
+      </button>
+
       <span id="copiedMsg" class="copied-msg">Copied!</span>
     </div>
   </footer>
@@ -107,7 +124,7 @@
       rowsDiv.appendChild(row);
     });
 
-    // Speaker test buttons
+    // Test speakers
     document.querySelectorAll(".speaker").forEach(btn => {
       btn.addEventListener("click", () => {
         const idx = Number(btn.getAttribute("data-idx"));
@@ -115,7 +132,7 @@
       });
     });
 
-    // Prefer nicer voices where available, but still universal
+    // Prefer nicer voices if present
     function pickVoice() {
       const want = [
         "Microsoft Aria Online (Natural)","Microsoft Jenny Online (Natural)","Microsoft Sonia Online (Natural)","Microsoft Natasha Online (Natural)",
@@ -136,25 +153,23 @@
     }
     speechSynthesis.onvoiceschanged = pickVoice; pickVoice();
 
-    // Speak with green-highlight while talking; revert after
     function speak(msg, idx) {
       if (muted) return;
       const u = new SpeechSynthesisUtterance(msg);
       if (femaleVoice) u.voice = femaleVoice;
       u.lang  = (femaleVoice && femaleVoice.lang) ? femaleVoice.lang : "en-AU";
-      u.rate  = 0.95;    // slightly slower
-      u.pitch = 1.12;    // slightly higher
+      u.rate  = 0.95;
+      u.pitch = 1.12;
       u.volume = 1;
 
       const row = document.getElementById(`row${idx}`);
       if (row) row.classList.add("ack");
       u.onend = () => { if (row) row.classList.remove("ack"); };
 
-      speechSynthesis.cancel(); // prevent overlapping queues
+      speechSynthesis.cancel();
       speechSynthesis.speak(u);
     }
 
-    // HH:MM:SS for long timers
     function hms(sec){
       const h=String(Math.floor(sec/3600)).padStart(2,"0");
       const m=String(Math.floor((sec%3600)/60)).padStart(2,"0");
@@ -165,11 +180,8 @@
     function paint(initial=false){
       items.forEach((it,i)=>{
         const el=document.getElementById(`time${i}`);
-        if (initial) {
-          el.textContent = it.initialDisplay; 
-        } else {
-          el.textContent = (it.secs < 60) ? (counters[i] + "s") : hms(counters[i]);
-        }
+        if (initial) el.textContent = it.initialDisplay;
+        else el.textContent = (it.secs < 60) ? (counters[i] + "s") : hms(counters[i]);
       });
     }
 
@@ -187,10 +199,7 @@
       }, 1000);
     }
 
-    function stopTicking(){
-      clearInterval(timerId);
-      timerId = null;
-    }
+    function stopTicking(){ clearInterval(timerId); timerId = null; }
 
     // Controls
     const toggleBtn = document.getElementById("toggleBtn");
@@ -215,7 +224,7 @@
       }
     };
 
-    // Reset = purple
+    // Reset
     resetBtn.onclick = () => {
       stopTicking();
       counters  = items.map(i => i.secs);
